@@ -4,11 +4,15 @@ Author: David Goedicke (da.goedicke@gmail.com)
 Closley based on work from Nikolas Martelaro (nmartelaro@gmail.com) as well as Captain Anonymous (https://codepen.io/anon/pen/PEVYXz) who forked of an original work by Ian Tairea (https://codepen.io/mrtairea/pen/yJapwv)
 */
 
+const {Translate} = require('@google-cloud/translate');
+
 var express = require('express'); // web server application
 var app = express(); // webapp
 var http = require('http').Server(app); // connects http library to server
 var io = require('socket.io')(http); // connect websocket library to server
 var serverPort = 8000;
+const translate = new Translate();
+
 
 
 //---------------------- WEBAPP SERVER SETUP ---------------------------------//
@@ -30,7 +34,7 @@ io.on('connect', function(socket) {
   var questionNum = 0; // keep count of question, used for IF condition.
   socket.on('loaded', function() { // we wait until the client has loaded and contacted us that it is ready to go.
 
-    socket.emit('answer', "Hey, hello I am \"___*-\" a simple chat bot example."); //We start with the introduction;
+    socket.emit('answer', "Hey, hello I am ChiBot - a simple chat bot."); //We start with the introduction;
     setTimeout(timedQuestion, 5000, socket, "What is your name?"); // Wait a moment and respond with a question.
 
   });
@@ -42,6 +46,19 @@ io.on('connect', function(socket) {
     console.log('user disconnected');
   });
 });
+
+async function translateText(text, target) {
+	const {Translate} = require('@google-cloud/translate');
+	const translate = new Translate();
+	let [translations] = await translate.translate(text, target);
+	console.log('Translations:');
+	console.log(`Translation: ${translation}`);
+}
+
+
+
+
+
 //--------------------------CHAT BOT FUNCTION-------------------------------//
 function bot(data, socket, questionNum) {
   var input = data; // This is generally really terrible from a security point of view ToDo avoid code injection
@@ -53,29 +70,27 @@ function bot(data, socket, questionNum) {
   if (questionNum == 0) {
     answer = 'Hello ' + input + ' :-)'; // output response
     waitTime = 5000;
-    question = 'How old are you?'; // load next question
+    question = 'What is your favorite class?'; // load next question
   } else if (questionNum == 1) {
-    answer = 'Really, ' + input + ' years old? So that means you were born in: ' + (2018 - parseInt(input)); // output response
+    answer = input + ' is not. Your favorite class is Interactive Device Design.'; // output response
     waitTime = 5000;
-    question = 'Where do you live?'; // load next question
+    question = 'Do you know how to program?'; // load next question
   } else if (questionNum == 2) {
-    answer = 'Cool! I have never been to ' + input + '.';
+    answer = input + '? You sure?';
     waitTime = 5000;
-    question = 'Whats your favorite color?'; // load next question
+    question = '1 + 1 = ?'; // load next question
   } else if (questionNum == 3) {
-    answer = 'Ok, ' + input + ' it is.';
+    answer = 'Ok... ' + input + '... The answer is 10 coz it is in binary.';
     socket.emit('changeBG', input.toLowerCase());
     waitTime = 5000;
-    question = 'Can you still read the font?'; // load next question
+    question = 'Are you this bored to still play this game?'; // load next question
   } else if (questionNum == 4) {
     if (input.toLowerCase() === 'yes' || input === 1) {
-      answer = 'Perfect!';
+      answer = 'Get a life!';
       waitTime = 5000;
-      question = 'Whats your favorite place?';
+      question = 'What is the best programming language?';
     } else if (input.toLowerCase() === 'no' || input === 0) {
-      socket.emit('changeFont', 'white'); /// we really should look up the inverse of what we said befor.
-      answer = ''
-      question = 'How about now?';
+      answer = 'But you are.'
       waitTime = 0;
       questionNum--; // Here we go back in the question number this can end up in a loop
     } else {
